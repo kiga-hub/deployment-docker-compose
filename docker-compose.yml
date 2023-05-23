@@ -1,0 +1,155 @@
+version: "3"
+# defines one or more services
+services:
+  mongo:
+    image: mongo:6-jammy
+    container_name: $NODE_NAME-mongo
+    # Will restart the container if it exits
+    restart: always
+    # no - The default, which does not restart the container under any circumstances.
+    # always - Restarts the container regardless of the exit status.
+    # on-failure - Restarts the container only if it exits with a non-zero exit status.
+    # unless-stopped - Same as always, but will not restart the container if it is explicitly stopped.
+    expose:
+      - $MONGO_PORT
+    # Connects to the mgmt network
+    networks:
+      - mgmt
+    # Maps a host volume to /data/db inside the container
+    volumes:
+      - "$BASE_PATH/$NODE_NAME/mongodb/data:/data/db"
+      - "$BASE_PATH/$NODE_NAME/mongodb/init:/docker-entrypoint-initdb.d"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=$MONGO_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGO_ROOT_PASSWORD
+      - MONGO_INITDB_DATABASE=$MONGO_INITDB_DATABASE
+
+  mariadb:
+    restart: always
+    image: $IMAGE_MARIADB
+    container_name: $NODE_NAME-mariadb
+    expose:
+      - $MARIADB_PORT
+    networks:
+      - mgmt
+    volumes:
+      - "$BASE_PATH/$NODE_NAME/mariadb/conf.d:/etc/mysql/conf.d"
+      - "$BASE_PATH/$NODE_NAME/mariadb/data:/var/lib/mysql"
+    environment:
+      - MYSQL_DATABASE=$MYSQL_DATABASE
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+  redis:
+    restart: always
+    image: $IMAGE_REDIS
+    container_name: $NODE_NAME-redis
+    expose:
+      - $REDIS_PORT
+    networks:
+      - mgmt
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - ALLOW_EMPTY_PASSWORD=yes
+  iam:
+    restart: always
+    image: $IMAGE_IAM
+    container_name: $NODE_NAME-iam
+    expose:
+      - "80"
+    networks:
+      - mgmt
+    depends_on:
+      - mariadb
+      - redis
+    environment:
+      - BASIC_INSWARM=false
+      - BASIC_ISDYNAMICCONFIG=false
+      - LOG_LOKI=
+      - TRACE_JAEGERCOLLECTOR=
+      - TRACE_TEMPO=
+      - MYSQL_HOST=mariadb
+      - MYSQL_USER=$IAM_MYSQL_USER
+      - MYSQL_PASSWORD=$MYSQL_ROOT_PASSWORD
+      - MYSQL_DB=$IAM_MYSQL_DB
+      - REDIS_HOST=redis:$REDIS_PORT
+      - REDIS_PASSWORD=
+  mgmt:
+    restart: always
+    image: $IMAGE_MGMT
+    container_name: $NODE_NAME-mgmt
+    # defines deployment options
+    deploy:
+      # defines resource limits for deployment
+      resources:
+        # defines the maximum amount of resources the cotainer can use.
+        limits:
+          # cpus: "0.50"
+          memory: 512M
+        # defines the minimum amount of the resoureces the container can use.
+        reservations:
+          # cpus: "0.25"
+          memory: 256M  
+    expose:
+      - "80"
+    networks:
+      - mgmt
+    depends_on:
+      - iam
+    volumes:
+      - "$BASE_PATH/$NODE_NAME/mgmt/process/json:/json"
+      - "$BASE_PATH/$NODE_NAME/mgmt/record:/record"
+      - "$BASE_PATH/$NODE_NAME/mgmt/files:/files"
+      - "$BASE_PATH/$NODE_NAME/mgmt/data:/data"
+      - "$BASE_PATH/$NODE_NAME/docs:/docs"
+    environment:
+      - DATA_DATA_DIR=/data
+      - DATA_RECORD_DIR=/record
+      - DATA_UPLOAD_DIR=/files
+      - LOADER_ROOT_DIR=/json
+      - MONGO_OPTIONS=$MGMT_MONGO_OPTIONS
+      - MONGO_ADDRESS=mongo:$MONGO_PORT
+      - MONGO_USER=$MONGO_ROOT_USERNAME
+      - MONGO_PASSWORD=$MONGO_ROOT_PASSWORD
+      - MONGO_DB=$MONGO_INITDB_DATABASE
+      - SERVICE_MARKDOWN_ROOT_DIR=/docs
+    # use command: ["backend"] to override the CMD argument and specify that we want to run the "backend" command
+    command: ["backend"]
+  web:
+    restart: always
+    image: $IMAGE_WEB
+    container_name: $NODE_NAME-web
+    expose:
+      - "80"
+    networks:
+      - mgmt
+
+  nginx:
+    restart: always
+    image: $IMAGE_NGINX
+    container_name: $NODE_NAME-nginx
+    ports:
+      - $WEB_PORT:80
+    networks:
+      - mgmt
+    volumes:
+      - $BASE_PATH/$NODE_NAME/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+    # depends_on only waits until the dependent services are "started". It does not wait for them to be "healthy".
+    depends_on:
+      - web
+      - iam
+      - mgmt
+  mongo-express:
+    image: mongo-express
+    container_name: $NODE_NAME-mexpress
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://$MONGO_ROOT_USERNAME:$MONGO_ROOT_PASSWORD@mongo:$MONGO_PORT/?authSource=admin
+    restart: unless-stopped
+    ports:
+      - $MEXPRESS_EXPORT:$MEXPRESS_PORT
+    networks:
+      - mgmt
+    depends_on:
+      - mongo
+  
+networks:
+  mgmt:
+    name: $NODE_NAME
