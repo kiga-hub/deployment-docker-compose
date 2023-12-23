@@ -111,8 +111,8 @@ services:
       - MONGO_PASSWORD=$MONGO_ROOT_PASSWORD
       - MONGO_DB=$MONGO_INITDB_DATABASE
       - SERVICE_MARKDOWN_ROOT_DIR=/docs
-    # use command: ["backend"] to override the CMD argument and specify that we want to run the "backend" command
-    command: ["backend"]
+    # use command: ["arc-storage"] to override the CMD argument and specify that we want to run the "arc-storage" command
+    command: ["arc-storage"]
   web:
     restart: always
     image: $IMAGE_WEB
