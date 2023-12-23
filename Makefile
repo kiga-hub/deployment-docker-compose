@@ -28,10 +28,10 @@ deploy:
 	mkdir -p $$BASE_PATH/$$NODE_NAME/mongodb/init
 	cp ./init.js $$BASE_PATH/$$NODE_NAME/mongodb/init/init.js
 	mkdir -p $$BASE_PATH/$$NODE_NAME/docs
-	mkdir -p $$BASE_PATH/$$NODE_NAME/mgmt/json
-	mkdir -p $$BASE_PATH/$$NODE_NAME/mgmt/files
-	mkdir -p $$BASE_PATH/$$NODE_NAME/mgmt/record
-	mkdir -p $$BASE_PATH/$$NODE_NAME/mgmt/data
+	mkdir -p $$BASE_PATH/$$NODE_NAME/arc-storage/json
+	mkdir -p $$BASE_PATH/$$NODE_NAME/arc-storage/files
+	mkdir -p $$BASE_PATH/$$NODE_NAME/arc-storage/record
+	mkdir -p $$BASE_PATH/$$NODE_NAME/arc-storage/data
 	mkdir -p $$BASE_PATH/$$NODE_NAME/nginx/conf.d
 	cp ./nginx.conf $$BASE_PATH/$$NODE_NAME/nginx/conf.d/default.conf
 
@@ -41,7 +41,7 @@ run:
 	@source .env.$(ENV)
 	@echo "##################################"
 	@echo "IMAGE_IAM:             " $$IMAGE_IAM
-	@echo "IMAGE_MGMT:            " $$IMAGE_MGMT
+	@echo "IMAGE_ARC_STORAGE:            " $$IMAGE_ARC_STORAGE
 	@echo "IMAGE_WEB:             " $$IMAGE_WEB
 	@echo "NODE_NAME:             " $$NODE_NAME
 	@echo "NODE_HOST:             " $$NODE_HOST
@@ -58,7 +58,7 @@ run:
 	@echo "IAM_MYSQL_HOST:        " $$IAM_MYSQL_HOST
 	@echo "IAM_MYSQL_USER:        " $$IAM_MYSQL_USER
 	@echo "IAM_MYSQL_DB:          " $$IAM_MYSQL_DB
-	@echo "MGMT_MONGO_OPTIONS:    " $$MGMT_MONGO_OPTIONS
+	@echo "ARC_STORAGE_MONGO_OPTIONS:    " $$ARC_STORAGE_MONGO_OPTIONS
 	@echo "MEXPRESS_USERNAME:     " $$MEXPRESS_USERNAME
 	@echo "MEXPRESS_PASSWORD:     " $$MEXPRESS_PASSWORD
 	@echo "MONGO_ROOT_USERNAME:   " $$MONGO_ROOT_USERNAME
@@ -67,7 +67,7 @@ run:
 	@echo "COMPOSE_PROJECT_NAME:  " $$NODE_NAME
 	@echo "##################################"
 
-	IMAGE_IAM=$$IMAGE_IAM IMAGE_MGMT=$$IMAGE_MGMT IMAGE_WEB=$$IMAGE_WEB \
+	IMAGE_IAM=$$IMAGE_IAM IMAGE_ARC_STORAGE=$$IMAGE_ARC_STORAGE IMAGE_WEB=$$IMAGE_WEB \
 	NODE_NAME=$$NODE_NAME NODE_HOST=$$NODE_HOST WEB_PORT=$$WEB_PORT \
 	COMPOSE_PROJECT_NAME=$$NODE_NAME \
 
