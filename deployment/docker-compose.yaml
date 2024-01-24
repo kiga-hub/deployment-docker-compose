@@ -1,0 +1,81 @@
+version: "3"
+services:
+  mariadb:
+    restart: always
+    image: mariadb:10.5.4
+    network_mode: host
+    volumes:
+      - "/data/backend/mariadb/conf.d:/etc/mysql/conf.d"
+      - "/data/backend/mariadb/data:/var/lib/mysql"
+    environment:
+      - MYSQL_DATABASE=backend
+      - MYSQL_ROOT_PASSWORD=passwd
+
+  prometheus:
+    restart: always
+    image: prom/prometheus
+    network_mode: host
+    command:
+      - "--web.enable-lifecycle"
+      - "--web.enable-admin-api"
+      - "--config.file=/prometheus/config/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus/data"
+      - "--storage.tsdb.retention.time=30d"
+    volumes:
+      - "/data/backend/prometheus:/prometheus"
+    user: 0:0
+
+  alertmanager:
+    restart: always
+    image: prom/alertmanager:latest
+    network_mode: host
+    command:
+      - "--config.file=/alertmanager/config/alertmanager.yml"
+      - "--storage.path=/alertmanager/data"
+      - "--cluster.advertise-address=0.0.0.0:9093"
+    volumes:
+      - "/data/backend/alertmanager:/alertmanager"
+    user: 0:0
+
+  grafana:
+    restart: always
+    image: grafana/grafana
+    network_mode: host
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=passwd
+    volumes:
+      - "/data/backend/grafana/datasources:/etc/grafana/provisioning/datasources"
+      - "/data/backend/grafana/plugins:/var/lib/grafana/plugins"
+      - "/data/backend/grafana/dashboards:/etc/grafana/provisioning/dashboards"
+      - "/data/backend/grafana/notifiers.yaml:/etc/grafana/provisioning/notifiers/notifiers.yaml"
+    user: 0:0
+
+  node_exporter:
+    network_mode: host
+    image: prom/node-exporter
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--path.procfs=/host/proc'
+      # - '--collector.textfile.directory=/var/lib/node_exporter/textfile_collector' 
+    volumes:
+      - proc:/host/proc:ro
+      - sys:/host/sys:ro
+      - '/:/host:ro,rslave'
+      # - '/var/lib/node_exporter/textfile_collector:/var/lib/node_exporter/textfile_collector'
+    depends_on:
+      - prometheus
+    pid: host
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - '/:/host:ro,rslave'
+
+  nginx:
+    restart: always
+    image: nginx:latest
+    network_mode: host
+    volumes:
+      - "/data/backend/nginx:/etc/nginx/conf.d"

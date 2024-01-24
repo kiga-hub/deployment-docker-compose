@@ -121,12 +121,6 @@ $ sudo gpasswd -a kiga docker
 $ sudo reboot
 ```
 
-test container
-
-```bash
-curl -H "Content-Type:application/json" -X POST -d '{"username": "admin", "password": "password"}' http://192.168.123.128:32768/api/iam/v1/auth/login
-```
-
 install docker-compose
 
 ```bash
@@ -134,7 +128,7 @@ $ sudo curl -L https://raw.githubusercontent.com/docker/compose/3.8/contrib/comp
 $ sudo apt-get install docker-compose-plugin
 ```
 
-## Deployment dev environmnet
+## Deployment simple dev environmnet
 
 By default, the ${ENV} variable is set to dev.
 
@@ -152,10 +146,6 @@ sudo make run ENV=dev
 
 If deploying to multiple environments, it's necessary to reset the previous environment by either using the "make clean" command or manually removing the mounted directory before deploying to the next environment again.
 
-
-TODO 
-
-Trying to modify the IAM service and reset the username and password of MySQL
 
 ## clean docker-compose
 

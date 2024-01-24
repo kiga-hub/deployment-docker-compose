@@ -49,29 +49,7 @@ services:
     environment:
       - REDIS_REPLICATION_MODE=master
       - ALLOW_EMPTY_PASSWORD=yes
-  iam:
-    restart: always
-    image: $IMAGE_IAM
-    container_name: $NODE_NAME-iam
-    expose:
-      - "80"
-    networks:
-      - arc-storage
-    depends_on:
-      - mariadb
-      - redis
-    environment:
-      - BASIC_INSWARM=false
-      - BASIC_ISDYNAMICCONFIG=false
-      - LOG_LOKI=
-      - TRACE_JAEGERCOLLECTOR=
-      - TRACE_TEMPO=
-      - MYSQL_HOST=mariadb
-      - MYSQL_USER=$IAM_MYSQL_USER
-      - MYSQL_PASSWORD=$MYSQL_ROOT_PASSWORD
-      - MYSQL_DB=$IAM_MYSQL_DB
-      - REDIS_HOST=redis:$REDIS_PORT
-      - REDIS_PASSWORD=
+      
   arc_storage:
     restart: always
     image: $IMAGE_ARC_STORAGE
@@ -92,8 +70,6 @@ services:
       - "80"
     networks:
       - arc-storage
-    depends_on:
-      - iam
     volumes:
       - "$BASE_PATH/$NODE_NAME/arc-storage/process/json:/json"
       - "$BASE_PATH/$NODE_NAME/arc-storage/record:/record"
@@ -113,14 +89,6 @@ services:
       - SERVICE_MARKDOWN_ROOT_DIR=/docs
     # use command: ["arc-storage"] to override the CMD argument and specify that we want to run the "arc-storage" command
     command: ["arc-storage"]
-  web:
-    restart: always
-    image: $IMAGE_WEB
-    container_name: $NODE_NAME-web
-    expose:
-      - "80"
-    networks:
-      - arc-storage
 
   nginx:
     restart: always
@@ -134,9 +102,8 @@ services:
       - $BASE_PATH/$NODE_NAME/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
     # depends_on only waits until the dependent services are "started". It does not wait for them to be "healthy".
     depends_on:
-      - web
-      - iam
       - arc-storage
+
   mongo-express:
     image: mongo-express
     container_name: $NODE_NAME-mexpress

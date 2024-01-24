@@ -40,7 +40,6 @@ run:
 	@source .env
 	@source .env.$(ENV)
 	@echo "##################################"
-	@echo "IMAGE_IAM:             " $$IMAGE_IAM
 	@echo "IMAGE_ARC_STORAGE:            " $$IMAGE_ARC_STORAGE
 	@echo "IMAGE_WEB:             " $$IMAGE_WEB
 	@echo "NODE_NAME:             " $$NODE_NAME
@@ -55,9 +54,6 @@ run:
 	@echo "MYSQL_USER:            " $$MYSQL_USER
 	@echo "MYSQL_DATABASE:        " $$MYSQL_DATABASE
 	@echo "MYSQL_ROOT_PASSWORD:   " $$MYSQL_ROOT_PASSWORD
-	@echo "IAM_MYSQL_HOST:        " $$IAM_MYSQL_HOST
-	@echo "IAM_MYSQL_USER:        " $$IAM_MYSQL_USER
-	@echo "IAM_MYSQL_DB:          " $$IAM_MYSQL_DB
 	@echo "ARC_STORAGE_MONGO_OPTIONS:    " $$ARC_STORAGE_MONGO_OPTIONS
 	@echo "MEXPRESS_USERNAME:     " $$MEXPRESS_USERNAME
 	@echo "MEXPRESS_PASSWORD:     " $$MEXPRESS_PASSWORD
@@ -67,7 +63,7 @@ run:
 	@echo "COMPOSE_PROJECT_NAME:  " $$NODE_NAME
 	@echo "##################################"
 
-	IMAGE_IAM=$$IMAGE_IAM IMAGE_ARC_STORAGE=$$IMAGE_ARC_STORAGE IMAGE_WEB=$$IMAGE_WEB \
+	IMAGE_ARC_STORAGE=$$IMAGE_ARC_STORAGE IMAGE_WEB=$$IMAGE_WEB \
 	NODE_NAME=$$NODE_NAME NODE_HOST=$$NODE_HOST WEB_PORT=$$WEB_PORT \
 	COMPOSE_PROJECT_NAME=$$NODE_NAME \
 
