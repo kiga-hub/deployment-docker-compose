@@ -72,7 +72,16 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       - '/:/host:ro,rslave'
-
+  redis:
+    restart: always
+    image: redis:6.0.2
+    network_mode: host
+    ports:
+      - "6379:6379"
+    volumes:
+      - "/data/backend/redis:/var/lib/redis"
+      - "/data/backend/redis.conf:/etc/redis/redis.conf"
+      
   nginx:
     restart: always
     image: nginx:latest
